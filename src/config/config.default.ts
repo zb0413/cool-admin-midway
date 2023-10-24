@@ -27,6 +27,30 @@ export default {
       ttl: -1,
     },
   },
+
+  httpProxy: {
+    // match: /\/cool-js\//,
+    // host: 'https://admin.cool-js.com',
+
+    strategy: {
+      'cool-js': {
+        match: /\/cool-js\/(.*)$/,
+        target: 'https://admin.cool-js.com/$1',
+      },
+      // httpBin: {
+      //   // https://httpbin.org/
+      //   match: /\/httpbin\/(.*)$/,
+      //   target: 'https://httpbin.org/$1',
+      // },
+      httpBin: {
+        // https://httpbin.org/
+        match: /\/httpbin\/(.*)$/,
+        target: 'https://httpbin.org/$1',
+      },
+    },
+    
+  },
+
   cool: {
     file: {
       // 上传模式 本地上传或云存储

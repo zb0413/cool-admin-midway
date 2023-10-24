@@ -30,7 +30,13 @@ export class BaseAuthorityMiddleware
       let statusCode = 200;
       let { url } = ctx;
       url = url.replace(this.prefix, '');
-      const token = ctx.get('Authorization');
+      const token1 = ctx.get('Authorization');
+      let token = ''
+      if(token1.startsWith('Bearer ')){
+        token = token1.replace('Bearer ', '');
+      }else{
+        token = token1
+      }
       const adminUrl = '/admin/';
       //忽略token验证的url
       const ignoreUrls = [];
