@@ -9,6 +9,7 @@ import { BaseSysUserRoleEntity } from '../../entity/sys/user_role';
 import * as md5 from 'md5';
 import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import { CacheManager } from '@midwayjs/cache';
+import { Utils } from '../../../../comm/utils';
 
 /**
  * 系统用户
@@ -65,7 +66,7 @@ export class BaseSysUserService extends BaseService {
             ])}
             ${this.setSql(true, 'and a.username != ?', ['admin'])}
             ${this.setSql(
-              this.ctx.admin.username !== 'admin',
+              !Utils.hasAdminRole(this.ctx.admin.roleIds),
               'and a.departmentId in (?)',
               [!_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null]]
             )}
@@ -107,7 +108,7 @@ export class BaseSysUserService extends BaseService {
     if (_.isEmpty(user.roleIdList)) {
       return;
     }
-    if (user.username === 'admin') {
+    if (Utils.hasAdminRole(this.ctx.admin.roleIds)) {
       throw new CoolCommException('非法操作~');
     }
     await this.baseSysUserRoleEntity.delete({ userId: user.id });

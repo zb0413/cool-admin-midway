@@ -3,12 +3,14 @@ import * as _ from 'lodash';
 import { RESCODE } from '@cool-midway/core';
 import * as jwt from 'jsonwebtoken';
 import { NextFunction, Context } from '@midwayjs/koa';
-import { IMiddleware, IMidwayApplication } from '@midwayjs/core';
+import { IMiddleware, IMidwayApplication,  Scope, ScopeEnum  } from '@midwayjs/core';
 import { CacheManager } from '@midwayjs/cache';
+import { Utils } from '../../../comm/utils';
 
 /**
  * 权限校验
  */
+@Scope(ScopeEnum.Request, { allowDowngrade: true })
 @Middleware()
 export class BaseAuthorityMiddleware
   implements IMiddleware<Context, NextFunction>
@@ -78,7 +80,7 @@ export class BaseAuthorityMiddleware
             return;
           }
           // 超管拥有所有权限
-          if (ctx.admin.username == 'admin' && !ctx.admin.isRefresh) {
+          if (Utils.hasAdminRole(ctx.admin.roleIds) && !ctx.admin.isRefresh) {
             if (rToken !== token && this.jwtConfig.jwt.sso) {
               ctx.status = 401;
               ctx.body = {

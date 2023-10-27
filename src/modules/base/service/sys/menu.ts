@@ -12,6 +12,7 @@ import { TempDataSource } from './data';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as pathUtil from 'path';
+import { Utils } from '../../../../comm/utils';
 
 /**
  * 菜单
@@ -39,8 +40,7 @@ export class BaseSysMenuService extends BaseService {
    */
   async list() {
     const menus = await this.getMenus(
-      this.ctx.admin.roleIds,
-      this.ctx.admin.username === 'admin'
+      this.ctx.admin.roleIds
     );
     if (!_.isEmpty(menus)) {
       menus.forEach(e => {
@@ -77,7 +77,7 @@ export class BaseSysMenuService extends BaseService {
     if (!_.isEmpty(roleIds)) {
       const result = await this.nativeQuery(
         `SELECT a.perms FROM base_sys_menu a ${this.setSql(
-          !roleIds.includes('1'),
+          !Utils.hasAdminRole(roleIds),
           'JOIN base_sys_role_menu b on a.id = b.menuId AND b.roleId in (?)',
           [roleIds]
         )}
@@ -103,19 +103,18 @@ export class BaseSysMenuService extends BaseService {
   /**
    * 获得用户菜单信息
    * @param roleIds
-   * @param isAdmin 是否是超管
    */
-  async getMenus(roleIds, isAdmin) {
+  async getMenus(roleIds) {
     return await this.nativeQuery(`
-        SELECT
-            a.*
+        SELECT 
+          a.*
         FROM
-            base_sys_menu a
-        ${this.setSql(
-          !isAdmin,
-          'JOIN base_sys_role_menu b on a.id = b.menuId AND b.roleId in (?)',
-          [roleIds]
-        )}
+          base_sys_menu a 
+          ${this.setSql(
+            !Utils.hasAdminRole(roleIds),
+            'JOIN base_sys_role_menu b on a.id = b.menuId AND b.roleId in (?)',
+            [roleIds]
+          )}
         GROUP BY a.id
         ORDER BY
             orderNum ASC`);

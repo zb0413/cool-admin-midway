@@ -16,6 +16,7 @@ import * as svgToDataURL from 'mini-svg-data-uri';
 import { Context } from '@midwayjs/koa';
 import { CacheManager } from '@midwayjs/cache';
 import { readFileSync } from 'fs';
+import { Utils } from '../../../../comm/utils';
 const { svg2png, initialize } = require('svg2png-wasm');
 initialize(readFileSync('./node_modules/svg2png-wasm/svg2png_wasm_bg.wasm'));
 
@@ -70,26 +71,29 @@ export class BaseSysLoginService extends BaseService {
         throw new CoolCommException('该用户未设置任何角色，无法登录~');
       }
 
+      // 将用户相关信息保存到缓存
+      const perms = await this.baseSysMenuService.getPerms(roleIds);
+      const departments = await this.baseSysDepartmentService.getByRoleIds(
+        roleIds,
+        Utils.hasAdminRole(roleIds)
+      );
+
       // 生成token
       const { expire, refreshExpire } = this.coolConfig.jwt.token;
       const result = {
         expire,
-        token: await this.generateToken(user, roleIds, expire),
+        token: await this.generateToken(user, roleIds, departments, expire),
         refreshExpire,
         refreshToken: await this.generateToken(
           user,
           roleIds,
+          departments,
           refreshExpire,
           true
         ),
       };
 
-      // 将用户相关信息保存到缓存
-      const perms = await this.baseSysMenuService.getPerms(roleIds);
-      const departments = await this.baseSysDepartmentService.getByRoleIds(
-        roleIds,
-        user.username === 'admin'
-      );
+
       await this.cacheManager.set(`admin:department:${user.id}`, departments);
       await this.cacheManager.set(`admin:perms:${user.id}`, perms);
       await this.cacheManager.set(`admin:token:${user.id}`, result.token);
@@ -192,7 +196,7 @@ export class BaseSysLoginService extends BaseService {
    * @param expire 过期
    * @param isRefresh 是否是刷新
    */
-  async generateToken(user, roleIds, expire, isRefresh?) {
+  async generateToken(user, roleIds, departments, expire, isRefresh?) {
     await this.cacheManager.set(
       `admin:passwordVersion:${user.id}`,
       user.passwordV
@@ -200,6 +204,7 @@ export class BaseSysLoginService extends BaseService {
     const tokenInfo = {
       isRefresh: false,
       roleIds,
+      departments,
       username: user.username,
       userId: user.id,
       passwordVersion: user.passwordV,

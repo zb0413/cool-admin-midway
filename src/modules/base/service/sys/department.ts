@@ -6,6 +6,7 @@ import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import * as _ from 'lodash';
 import { BaseSysRoleDepartmentEntity } from '../../entity/sys/role_department';
 import { BaseSysPermsService } from './perms';
+import { Utils } from '../../../../comm/utils';
 
 /**
  * 描述
@@ -35,7 +36,7 @@ export class BaseSysDepartmentService extends BaseService {
 
     // 过滤部门权限
     const find = this.baseSysDepartmentEntity.createQueryBuilder();
-    if (this.ctx.admin.username !== 'admin')
+    if (!Utils.hasAdminRole(this.ctx.admin.roleIds))
       find.andWhere('id in (:ids)', {
         ids: !_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null],
       });

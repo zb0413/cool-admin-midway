@@ -3,6 +3,7 @@ import { CoolController, BaseController } from '@cool-midway/core';
 import { Context } from 'vm';
 import { BaseSysRoleEntity } from '../../../entity/sys/role';
 import { BaseSysRoleService } from '../../../service/sys/role';
+import { Utils } from '../../../../../comm/utils';
 
 /**
  * 系统角色
@@ -12,6 +13,8 @@ import { BaseSysRoleService } from '../../../service/sys/role';
   api: ['add', 'delete', 'update', 'info', 'list', 'page'],
   entity: BaseSysRoleEntity,
   service: BaseSysRoleService,
+
+
   // 新增的时候插入当前用户ID
   insertParam: async (ctx: Context) => {
     return {
@@ -21,7 +24,7 @@ import { BaseSysRoleService } from '../../../service/sys/role';
   pageQueryOp: {
     keyWordLikeFields: ['name', 'label'],
     where: async (ctx: Context) => {
-      const { userId, roleIds, username } = ctx.admin;
+      const { userId, roleIds } = ctx.admin;
       return [
         // 超级管理员的角色不展示
         ['label != :label', { label: 'admin' }],
@@ -29,7 +32,7 @@ import { BaseSysRoleService } from '../../../service/sys/role';
         [
           '(userId=:userId or id in (:roleIds))',
           { userId, roleIds },
-          username !== 'admin',
+          !Utils.hasAdminRole(roleIds)
         ],
       ];
     },

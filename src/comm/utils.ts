@@ -8,6 +8,9 @@ import * as _ from 'lodash';
  */
 @Provide()
 export class Utils {
+
+  public static ADMIN_ROLE_ID :number = 1;
+
   @Inject()
   baseDir;
 
@@ -63,5 +66,20 @@ export class Utils {
    */
   sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * 是否存在Admin Role
+   * @param ctx
+   */
+
+  // hasAdminRole(ctx: Context){
+  //   // return ctx.admin.username == 'admin'
+  //   // !roleIds.includes('1'),
+  //   return ctx.admin.roleIds.includes(this.ADMIN_ROLE_ID)
+  // }
+
+  public static hasAdminRole(roleIds: Array<number>){
+    return roleIds.includes(Utils.ADMIN_ROLE_ID)
   }
 }

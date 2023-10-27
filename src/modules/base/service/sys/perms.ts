@@ -67,7 +67,6 @@ export class BaseSysPermsService extends BaseService {
     const perms = await this.baseSysMenuService.getPerms(roleIds);
     const menus = await this.baseSysMenuService.getMenus(
       roleIds,
-      this.ctx.admin.username === 'admin'
     );
     return { perms, menus };
   }
