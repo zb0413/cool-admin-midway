@@ -51,4 +51,5 @@ export class BaseSysUserEntity extends BaseEntity {
 
   @Column({ comment: 'socketId', nullable: true })
   socketId: string;
+
 }

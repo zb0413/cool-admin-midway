@@ -97,7 +97,32 @@ export class BaseSysUserService extends BaseService {
       id: this.ctx.admin?.userId,
     });
     delete info?.password;
-    return info;
+
+    //获取部门默认主页
+    let rootView = null;
+    if(info.departmentId ){
+      let dept = await this.baseSysDepartmentEntity.findOneBy({id: info.departmentId });
+      while(dept != null){
+        if(dept.viewPath != null){
+          rootView = dept.viewPath;
+          break;
+        }else{
+          if (dept.parentId ){
+            dept = await this.baseSysDepartmentEntity.findOneBy({id: dept.parentId});
+          }else{
+            break;
+          }
+        }
+      }
+    }
+
+    let person = {}
+    if(rootView){
+      person = _.merge(info, {rootView: rootView})
+    }else{
+      person = info
+    }
+    return person;
   }
 
   /**
