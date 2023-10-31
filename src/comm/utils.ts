@@ -72,13 +72,6 @@ export class Utils {
    * 是否存在Admin Role
    * @param ctx
    */
-
-  // hasAdminRole(ctx: Context){
-  //   // return ctx.admin.username == 'admin'
-  //   // !roleIds.includes('1'),
-  //   return ctx.admin.roleIds.includes(this.ADMIN_ROLE_ID)
-  // }
-
   public static hasAdminRole(roleIds: Array<number>){
     return roleIds.includes(Utils.ADMIN_ROLE_ID)
   }

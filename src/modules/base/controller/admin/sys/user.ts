@@ -2,6 +2,7 @@ import { Body, Inject, Post, Provide } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { BaseSysUserEntity } from '../../../entity/sys/user';
 import { BaseSysUserService } from '../../../service/sys/user';
+import { CacheManager } from '@midwayjs/cache';
 
 /**
  * 系统用户
@@ -16,6 +17,9 @@ export class BaseSysUserController extends BaseController {
   @Inject()
   baseSysUserService: BaseSysUserService;
 
+  @Inject()
+  cacheManager: CacheManager;
+
   /**
    * 移动部门
    */
@@ -27,4 +31,5 @@ export class BaseSysUserController extends BaseController {
     await this.baseSysUserService.move(departmentId, userIds);
     return this.ok();
   }
+
 }

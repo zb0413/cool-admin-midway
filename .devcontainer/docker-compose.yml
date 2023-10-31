@@ -15,35 +15,35 @@ services:
     # # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
     # network_mode: service:app
 
-  dev-postgres:
-    container_name: dev-postgres
-    image: postgres:14.5-alpine
-    volumes:
-      - dev_postgresql:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
+  # dev-postgres:
+  #   container_name: dev-postgres
+  #   image: postgres:14.5-alpine
+  #   volumes:
+  #     - dev_postgresql:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #   ports:
+  #     - "5432:5432"
   
   dev-mysql:
     container_name: dev-mysql
     image: mysql:8.2
     volumes:
       - dev_mysql:/var/lib/mysql
-      - ./mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
+      - ./init-db:/docker-entrypoint-initdb.d
     environment:
       - MYSQL_ROOT_PASSWORD=root
     ports:
       - "3306:3306"
 
-  dev-redis:
-    container_name: dev-redis
-    image: redis:6.0.10
-    command: >
-      --requirepass root
-    ports:
-      - "6379:6379"
+  # dev-redis:
+  #   container_name: dev-redis
+  #   image: redis:6.0.10
+  #   command: >
+  #     --requirepass root
+  #   ports:
+  #     - "6379:6379"
 
 
 volumes:

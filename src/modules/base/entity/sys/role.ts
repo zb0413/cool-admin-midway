@@ -6,8 +6,8 @@ import { Column, Index, Entity } from 'typeorm';
  */
 @Entity('base_sys_role')
 export class BaseSysRoleEntity extends BaseEntity {
-  @Column({ comment: '用户ID' })
-  userId: string;
+  // @Column({ comment: '用户ID' })
+  // userId: string;
 
   @Index({ unique: true })
   @Column({ comment: '名称' })
