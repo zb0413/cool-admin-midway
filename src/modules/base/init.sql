@@ -7,7 +7,7 @@ INSERT INTO base_sys_user(id,createTime,updateTime,departmentId,name,username,pa
 -- ----------------------------
 -- Records of base_sys_role
 -- ----------------------------
-INSERT INTO base_sys_role(id,createTime,updateTime,userId,name,label,remark,relevance,menuIdList,departmentIdList ) VALUES (1, '2021-02-24 21:18:39.682358', '2021-02-24 21:18:39.682358', '1', '超管', 'admin', '最高权限的角色', 1, 'null', 'null');
+INSERT INTO base_sys_role(id,createTime,updateTime,name,label,remark,relevance,menuIdList,departmentIdList ) VALUES (1, '2021-02-24 21:18:39.682358', '2021-02-24 21:18:39.682358', '超管', 'admin', '最高权限的角色', 1, 'null', 'null');
 
 -- ----------------------------
 -- Records of base_sys_user_role
@@ -18,7 +18,7 @@ INSERT INTO base_sys_user_role(id,createTime,updateTime,userId,roleId) VALUES (1
 -- ----------------------------
 -- Records of base_sys_department
 -- ----------------------------
-INSERT INTO base_sys_department(id, createTime, updateTime, name,parentId,orderNum ) VALUES (1, '2021-02-24 21:17:11.971397', '2023-03-07 00:39:53.000000', 'COOL', NULL, 0);
+INSERT INTO base_sys_department(id, createTime, updateTime, name,parentId,orderNum, viewPath) VALUES (1, '2021-02-24 21:17:11.971397', '2023-03-07 00:39:53.000000', 'COOL', NULL, 0, NULL);
 
 -- ----------------------------
 -- Records of base_sys_role_department

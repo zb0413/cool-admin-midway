@@ -17,6 +17,6 @@ export class BaseSysDepartmentEntity extends BaseEntity {
   // 父菜单名称
   parentName: string;
 
-  @Column({ comment: '默认主页'})
+  @Column({ comment: '默认主页', nullable: true })
   viewPath: string;
 }
