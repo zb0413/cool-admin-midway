@@ -5,6 +5,7 @@ import { BaseSysLoginService } from '../../service/sys/login';
 import { BaseSysParamService } from '../../service/sys/param';
 import { Context } from '@midwayjs/koa';
 import { Validate } from '@midwayjs/validate';
+import { ApplicationLoginDTO } from '../../dto/application_login';
 
 /**
  * 不需要登录的后台接口
@@ -73,4 +74,23 @@ export class BaseOpenController extends BaseController {
   async refreshToken(@Query('refreshToken') refreshToken: string) {
     return this.ok(await this.baseSysLoginService.refreshToken(refreshToken));
   }
+
+
+  /**
+   * application登录
+   * @param login
+   */
+    @Post('/applicationLogin', { summary: '登录' })
+    @Validate()
+    async application_login(@Body() applicationLoginDTO: ApplicationLoginDTO) {
+      return this.ok(await this.baseSysLoginService.applicationLogin(applicationLoginDTO));
+    }
+
+  /**
+   * application刷新token
+   */
+    @Get('/applicationRefreshToken', { summary: '刷新token' })
+    async applicationRefreshToken(@Query('refreshToken') refreshToken: string) {
+      return this.ok(await this.baseSysLoginService.applicationRefreshToken(refreshToken));
+    }
 }

@@ -1,9 +1,11 @@
 import { Inject, Provide, Config } from '@midwayjs/decorator';
 import { BaseService, CoolCommException, RESCODE } from '@cool-midway/core';
 import { LoginDTO } from '../../dto/login';
+import { ApplicationLoginDTO } from '../../dto/application_login';
 import * as svgCaptcha from 'svg-captcha';
 import { v1 as uuid } from 'uuid';
 import { BaseSysUserEntity } from '../../entity/sys/user';
+import { BaseSysApplicationEntity } from '../../entity/sys/application';
 import { Repository } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import * as md5 from 'md5';
@@ -11,6 +13,7 @@ import { BaseSysRoleService } from './role';
 import * as _ from 'lodash';
 import { BaseSysMenuService } from './menu';
 import { BaseSysDepartmentService } from './department';
+import { BaseSysApplicationService } from './application';
 import * as jwt from 'jsonwebtoken';
 import * as svgToDataURL from 'mini-svg-data-uri';
 import { Context } from '@midwayjs/koa';
@@ -31,6 +34,9 @@ export class BaseSysLoginService extends BaseService {
   @InjectEntityModel(BaseSysUserEntity)
   baseSysUserEntity: Repository<BaseSysUserEntity>;
 
+  @InjectEntityModel(BaseSysApplicationEntity)
+  baseSysApplicationEntity: Repository<BaseSysApplicationEntity>;
+
   @Inject()
   baseSysRoleService: BaseSysRoleService;
 
@@ -39,6 +45,9 @@ export class BaseSysLoginService extends BaseService {
 
   @Inject()
   baseSysDepartmentService: BaseSysDepartmentService;
+
+  @Inject()
+  baseSysApplicationService: BaseSysApplicationService;
 
   @Inject()
   ctx: Context;
@@ -261,5 +270,57 @@ export class BaseSysLoginService extends BaseService {
       };
       return;
     }
+  }
+
+  async applicationLogin(login: ApplicationLoginDTO) {
+    const { clientId, clientSecret } = login;
+
+    const app = await this.baseSysApplicationEntity.findOneBy({ clientId });
+    // 校验用户
+    if (app) {
+      // 校验用户状态及密码
+      if (app.status === 0 || app.clientSecret !== md5(clientSecret)) {
+        throw new CoolCommException('账户或密码不正确~');
+      }
+    } else {
+      throw new CoolCommException('账户或密码不正确~');
+    }
+
+    // 生成token
+    const { expire, refreshExpire } = this.coolConfig.jwt.token;
+    const result = {
+      expire,
+      token: await this.generateApplicationToken(app, expire),
+      refreshExpire,
+      refreshToken: await this.generateApplicationToken(
+        app,
+        refreshExpire,
+        true
+      ),
+    };
+
+    await this.cacheManager.set(`admin:application:${app.clientId}`, result.token);
+    await this.cacheManager.set(`admin:application:refresh:${app.clientId}`,result.refreshToken);
+    return result;
+  }
+
+  /**
+   * 生成token
+   * @param user 用户对象
+   * @param roleIds 角色集合
+   * @param expire 过期
+   * @param isRefresh 是否是刷新
+   */
+  async generateApplicationToken(app: BaseSysApplicationEntity, expire, isRefresh?) {
+    const tokenInfo = {
+      isRefresh: false,
+      clientId: app.clientId
+    };
+    if (isRefresh) {
+      tokenInfo.isRefresh = true;
+    }
+    return jwt.sign(tokenInfo, this.coolConfig.jwt.secret, {
+      expiresIn: expire,
+    });
   }
 }
