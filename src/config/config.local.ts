@@ -29,8 +29,8 @@ export default {
       // },
       default: {
         type: 'mysql',
-        host: '127.0.0.1',
-        // host:'dev-mysql',
+        // host: '127.0.0.1',
+        host:'craken-mysql',
         port: 3306,
         username: 'root',
         password: 'root',

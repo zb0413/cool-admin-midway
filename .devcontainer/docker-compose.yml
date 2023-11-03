@@ -8,6 +8,7 @@ services:
     # docker-compose.yml file (the first in the devcontainer.json "dockerComposeFile"
     # array). The sample below assumes your primary file is in the root of your project.
     #
+    container_name: cool-admin-midway
     build:
       context: .
       dockerfile: Dockerfile

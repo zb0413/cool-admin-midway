@@ -323,4 +323,45 @@ export class BaseSysLoginService extends BaseService {
       expiresIn: expire,
     });
   }
+
+  /**
+   * 刷新token
+   * @param token
+   */
+  async applicationRefreshToken(token: string) {
+    try {
+      const decoded = jwt.verify(token, this.coolConfig.jwt.secret);
+      if (decoded && decoded['isRefresh']) {
+        delete decoded['exp'];
+        delete decoded['iat'];
+
+        const { expire, refreshExpire } = this.coolConfig.jwt.token;
+        decoded['isRefresh'] = false;
+        const result = {
+          expire,
+          token: jwt.sign(decoded, this.coolConfig.jwt.secret, {
+            expiresIn: expire,
+          }),
+          refreshExpire,
+          refreshToken: '',
+        };
+        decoded['isRefresh'] = true;
+        result.refreshToken = jwt.sign(decoded, this.coolConfig.jwt.secret, {
+          expiresIn: refreshExpire,
+        });
+
+        await this.cacheManager.set(`admin:application:${decoded['clientId']}`, result.token);
+
+        return result;
+      }
+    } catch (err) {
+      console.log(err);
+      this.ctx.status = 401;
+      this.ctx.body = {
+        code: RESCODE.COMMFAIL,
+        message: '登录失效~',
+      };
+      return;
+    }
+  }
 }

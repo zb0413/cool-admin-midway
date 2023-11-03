@@ -249,10 +249,11 @@ export class SpaceWpsService extends BaseService {
    * @param body
    * @returns
    */
+  // TODO get user id
   async uploadComplete(file_id: string, body: any) {
     console.log('上传完成后，回调通知上传结果:' + file_id);
     console.log(body);
-    const userInfo = await this.baseSysUserService.person();
+    // const userInfo = await this.baseSysUserService.person();
     const fileInfo = await this.getFileInfo(file_id);
     return {
       code: 0,
@@ -263,8 +264,8 @@ export class SpaceWpsService extends BaseService {
         size: fileInfo.size,
         create_time: moment(fileInfo.createTime).valueOf(),
         modify_time: moment(fileInfo.updateTime).valueOf(),
-        creator_id: String(userInfo.id),
-        modifier_id: String(userInfo.id),
+        // creator_id: String(userInfo?.id || ''),
+        // modifier_id: String(userInfo?.id || ''),
       },
     };
   }
