@@ -29,9 +29,12 @@ export default {
       // },
       default: {
         type: 'mysql',
-        // host: '127.0.0.1',
         host:'craken-mysql',
         port: 3306,
+        // type: 'postgres',
+        // host:'craken-postgres',
+        // port: 5432,
+
         username: 'root',
         password: 'root',
         database: 'cool',
