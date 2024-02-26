@@ -1,9 +1,9 @@
 import { App, Config, Inject, Middleware } from '@midwayjs/decorator';
 import * as _ from 'lodash';
-import { RESCODE } from '@cool-midway/core';
+import { CoolUrlTagData, RESCODE, TagTypes } from '@cool-midway/core';
 import * as jwt from 'jsonwebtoken';
 import { NextFunction, Context } from '@midwayjs/koa';
-import { IMiddleware, IMidwayApplication,  Scope, ScopeEnum  } from '@midwayjs/core';
+import { IMiddleware, IMidwayApplication, Init } from '@midwayjs/core';
 import { CacheManager } from '@midwayjs/cache';
 import { Utils } from '../../../comm/utils';
 
@@ -24,15 +24,25 @@ export class BaseAuthorityMiddleware
   @Inject()
   cacheManager: CacheManager;
 
+  @Inject()
+  coolUrlTagData: CoolUrlTagData;
+
   @App()
   app: IMidwayApplication;
+
+  ignoreUrls: string[] = [];
+
+  @Init()
+  async init() {
+    this.ignoreUrls = this.coolUrlTagData.byKey(TagTypes.IGNORE_TOKEN, 'admin');
+  }
 
   resolve() {
     return async (ctx: Context, next: NextFunction) => {
       let statusCode = 200;
       let { url } = ctx;
-      url = url.replace(this.prefix, '');
-      const token1 = ctx.get('Authorization');
+      url = url.replace(this.prefix, '').split('?')[0];
+      const token = ctx.get('Authorization');
       let token = ''
       if(token1.startsWith('Bearer ')){
         token = token1.replace('Bearer ', '');
@@ -40,8 +50,6 @@ export class BaseAuthorityMiddleware
         token = token1
       }
       const adminUrl = '/admin/';
-      //忽略token验证的url
-      const ignoreUrls = [];
       // 路由地址为 admin前缀的 需要权限校验
       if (_.startsWith(url, adminUrl)) {
         try {
@@ -56,10 +64,7 @@ export class BaseAuthorityMiddleware
           }
         } catch (error) {}
         // 不需要登录 无需权限校验
-        if (
-          new RegExp(`^${adminUrl}?.*/open/`).test(url) ||
-          ignoreUrls.includes(url)
-        ) {
+        if (this.ignoreUrls.includes(url)) {
           await next();
           return;
         }

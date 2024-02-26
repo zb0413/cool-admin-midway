@@ -6,10 +6,11 @@ import { UserInfoEntity } from '../entity/info';
 import { UserWxService } from './wx';
 import * as jwt from 'jsonwebtoken';
 import { UserWxEntity } from '../entity/wx';
-import { CoolFile } from '@cool-midway/file';
 import { BaseSysLoginService } from '../../base/service/sys/login';
 import { UserSmsService } from './sms';
 import { v1 as uuid } from 'uuid';
+import * as md5 from 'md5';
+import { PluginService } from '../../plugin/service/info';
 
 /**
  * 登录
@@ -32,7 +33,7 @@ export class UserLoginService extends BaseService {
   baseSysLoginService: BaseSysLoginService;
 
   @Inject()
-  file: CoolFile;
+  pluginService: PluginService;
 
   @Inject()
   userSmsService: UserSmsService;
@@ -151,7 +152,8 @@ export class UserLoginService extends BaseService {
     const unionid = wxUserInfo.unionid ? wxUserInfo.unionid : wxUserInfo.openid;
     let userInfo: any = await this.userInfoEntity.findOneBy({ unionid });
     if (!userInfo) {
-      const avatarUrl = await this.file.downAndUpload(
+      const file = await this.pluginService.getInstance('upload');
+      const avatarUrl = await file.downAndUpload(
         wxUserInfo.avatarUrl,
         uuid() + '.png'
       );
@@ -184,6 +186,23 @@ export class UserLoginService extends BaseService {
       throw new CoolCommException(
         '刷新token失败，请检查refreshToken是否正确或过期'
       );
+    }
+  }
+
+  /**
+   * 密码登录
+   * @param phone
+   * @param password
+   */
+  async password(phone, password) {
+    const user = await this.userInfoEntity.findOneBy({ phone });
+
+    if (user && user.password == md5(password)) {
+      return this.token({
+        id: user.id,
+      });
+    } else {
+      throw new CoolCommException('账号或密码错误');
     }
   }
 

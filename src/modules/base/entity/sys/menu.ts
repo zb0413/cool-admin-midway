@@ -20,7 +20,7 @@ export class BaseSysMenuEntity extends BaseEntity {
 
   @Column({
     comment: '类型 0-目录 1-菜单 2-按钮',
-    default: 0
+    default: 0,
   })
   type: number;
 

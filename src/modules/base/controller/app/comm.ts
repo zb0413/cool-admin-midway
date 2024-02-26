@@ -1,4 +1,4 @@
-import { Provide, Inject, Get, Post, Query } from '@midwayjs/decorator';
+import { Provide, Inject, Get, Post, Query, Config } from '@midwayjs/decorator';
 import {
   CoolController,
   BaseController,
@@ -8,8 +8,8 @@ import {
   CoolTag,
 } from '@cool-midway/core';
 import { Context } from '@midwayjs/koa';
-import { CoolFile } from '@cool-midway/file';
 import { BaseSysParamService } from '../../service/sys/param';
+import { PluginService } from '../../../plugin/service/info';
 
 /**
  * 不需要登录的后台接口
@@ -19,12 +19,12 @@ import { BaseSysParamService } from '../../service/sys/param';
 @CoolController()
 export class BaseAppCommController extends BaseController {
   @Inject()
-  coolFile: CoolFile;
+  pluginService: PluginService;
 
   @Inject()
   ctx: Context;
 
-  @Inject('module.base.allowKeys')
+  @Config('module.base.allowKeys')
   allowKeys: string[];
 
   @Inject()
@@ -36,7 +36,7 @@ export class BaseAppCommController extends BaseController {
   @CoolTag(TagTypes.IGNORE_TOKEN)
   @Get('/param', { summary: '参数配置' })
   async param(@Query('key') key: string) {
-    if (!this.allowKeys.indexOf(key)) {
+    if (!this.allowKeys.includes(key)) {
       return this.fail('非法操作');
     }
     return this.ok(await this.baseSysParamService.dataByKey(key));
@@ -57,7 +57,8 @@ export class BaseAppCommController extends BaseController {
    */
   @Post('/upload', { summary: '文件上传' })
   async upload() {
-    return this.ok(await this.coolFile.upload(this.ctx));
+    const file = await this.pluginService.getInstance('upload');
+    return this.ok(await file.upload(this.ctx));
   }
 
   /**
@@ -65,6 +66,7 @@ export class BaseAppCommController extends BaseController {
    */
   @Get('/uploadMode', { summary: '文件上传模式' })
   async uploadMode() {
-    return this.ok(await this.coolFile.getMode());
+    const file = await this.pluginService.getInstance('upload');
+    return this.ok(await file.getMode());
   }
 }

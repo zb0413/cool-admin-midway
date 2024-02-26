@@ -10,7 +10,7 @@ export class TaskLogEntity extends BaseEntity {
   @Column({ comment: '任务ID', nullable: true })
   taskId: number;
 
-  @Column({ comment: '状态 0-失败 1-成功', default: 0})
+  @Column({ comment: '状态 0-失败 1-成功', default: 0 })
   status: number;
 
   @Column({ comment: '详情描述', nullable: true, type: 'text' })

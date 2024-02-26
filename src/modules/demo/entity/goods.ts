@@ -1,5 +1,5 @@
 import { BaseEntity } from '@cool-midway/core';
-import { Column, Entity, Index } from 'typeorm';
+import { BeforeRemove, Column, Entity, Index } from 'typeorm';
 
 /**
  * 商品模块-商品信息

@@ -42,7 +42,7 @@ export class BaseSysUserEntity extends BaseEntity {
   @Column({ comment: '备注', nullable: true })
   remark: string;
 
-  @Column({ comment: '状态 0:禁用 1：启用', default: 1})
+  @Column({ comment: '状态 0-禁用 1-启用', default: 1 })
   status: number;
   // 部门名称
   departmentName: string;

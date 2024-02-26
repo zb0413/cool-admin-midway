@@ -12,8 +12,10 @@ import { TempDataSource } from './data';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as pathUtil from 'path';
-import { Utils } from '../../../../comm/utils';
+import { BaseSysRoleMenuEntity } from '../../entity/sys/role_menu';
+import { BaseSysUserRoleEntity } from '../../entity/sys/user_role';
 
+import { Utils } from '../../../../comm/utils';
 /**
  * 菜单
  */
@@ -25,6 +27,9 @@ export class BaseSysMenuService extends BaseService {
 
   @InjectEntityModel(BaseSysMenuEntity)
   baseSysMenuEntity: Repository<BaseSysMenuEntity>;
+
+  @InjectEntityModel(BaseSysRoleMenuEntity)
+  baseSysRoleMenuEntity: Repository<BaseSysRoleMenuEntity>;
 
   @Inject()
   baseSysPermsService: BaseSysPermsService;
@@ -43,7 +48,7 @@ export class BaseSysMenuService extends BaseService {
       this.ctx.admin.roleIds
     );
     if (!_.isEmpty(menus)) {
-      menus.forEach(e => {
+      menus.forEach((e: any) => {
         const parentMenu = menus.filter(m => {
           e.parentId = parseInt(e.parentId);
           if (e.parentId == m.id) {
@@ -161,15 +166,16 @@ export class BaseSysMenuService extends BaseService {
    * @param menuId
    */
   async refreshPerms(menuId) {
-    const users = await this.nativeQuery(
-      'select b.userId from base_sys_role_menu a left join base_sys_user_role b on a.roleId = b.roleId where a.menuId = ? group by b.userId',
-      [menuId]
-    );
+    const find = this.baseSysRoleMenuEntity.createQueryBuilder('a');
+    find.leftJoinAndSelect(BaseSysUserRoleEntity, 'b', 'a.roleId = b.roleId');
+    find.where('a.menuId = :menuId', { menuId: menuId });
+    find.select('b.userId', 'userId');
+    const users = await find.getRawMany();
     // 刷新admin权限
     await this.baseSysPermsService.refreshPerms(1);
     if (!_.isEmpty(users)) {
       // 刷新其他权限
-      for (const user of users) {
+      for (const user of _.uniqBy(users, 'userId')) {
         await this.baseSysPermsService.refreshPerms(user.userId);
       }
     }
