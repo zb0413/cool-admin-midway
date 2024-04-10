@@ -24,6 +24,7 @@
     "axios": "^1.6.7",
     "cache-manager-ioredis-yet": "^2.0.2",
     "decompress": "^4.2.1",
+    "download": "^8.0.0",
     "ipip-ipdb": "^0.6.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
