@@ -68,6 +68,7 @@ export class PluginCenterService {
     await this.initPlugin({
       keyName,
     });
+    this.coolEventManager.emit(EVENT_PLUGIN_READY, keyName);
   }
 
   /**
