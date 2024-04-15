@@ -47,6 +47,18 @@ export class AppUserLoginController extends BaseController {
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/uniPhone', { summary: '一键手机号登录' })
+  async uniPhone(
+    @Body('access_token') access_token: string,
+    @Body('openid') openid: string,
+    @Body('appId') appId: string
+  ) {
+    return this.ok(
+      await this.userLoginService.uniPhone(access_token, openid, appId)
+    );
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
   @Get('/captcha', { summary: '图片验证码' })
   async captcha(
     @Query('type') type: string,

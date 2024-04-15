@@ -81,6 +81,31 @@ export class UserLoginService extends BaseService {
   }
 
   /**
+   * 手机号一键登录
+   * @param access_token
+   * @param openid
+   */
+  async uniPhone(access_token, openid, appId) {
+    const instance = await this.pluginService.getInstance('uniphone');
+    const phone = await instance.getPhone(access_token, openid, appId);
+    if (phone) {
+      let user: any = await this.userInfoEntity.findOneBy({ phone });
+      if (!user) {
+        user = {
+          phone,
+          unionid: phone,
+          loginType: 2,
+          nickName: phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2'),
+        };
+        await this.userInfoEntity.insert(user);
+      }
+      return this.token({ id: user.id });
+    } else {
+      throw new CoolCommException('获得手机号失败，请检查配置');
+    }
+  }
+
+  /**
    * 公众号登录
    * @param code
    */
