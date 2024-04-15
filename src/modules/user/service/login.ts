@@ -54,29 +54,32 @@ export class UserLoginService extends BaseService {
   }
 
   /**
-   *  手机登录
+   *  手机验证码登录
    * @param phone
    * @param smsCode
    */
-  async phone(phone, smsCode) {
+  async phoneVerifyCode(phone, smsCode) {
     // 1、检查短信验证码  2、登录
     const check = await this.userSmsService.checkCode(phone, smsCode);
     if (check) {
-      let user: any = await this.userInfoEntity.findOneBy({
-        phone: Equal(phone),
-      });
-      if (!user) {
-        user = {
-          phone,
-          unionid: phone,
-          loginType: 2,
-          nickName: phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2'),
-        };
-        await this.userInfoEntity.insert(user);
-      }
-      return this.token({ id: user.id });
+      return await this.phone(phone);
     } else {
       throw new CoolCommException('验证码错误');
+    }
+  }
+
+  /**
+   * 小程序手机号登录
+   * @param code
+   * @param encryptedData
+   * @param iv
+   */
+  async miniPhone(code, encryptedData, iv) {
+    const phone = await this.userWxService.miniPhone(code, encryptedData, iv);
+    if (phone) {
+      return await this.phone(phone);
+    } else {
+      throw new CoolCommException('获得手机号失败，请检查配置');
     }
   }
 
@@ -89,20 +92,31 @@ export class UserLoginService extends BaseService {
     const instance = await this.pluginService.getInstance('uniphone');
     const phone = await instance.getPhone(access_token, openid, appId);
     if (phone) {
-      let user: any = await this.userInfoEntity.findOneBy({ phone });
-      if (!user) {
-        user = {
-          phone,
-          unionid: phone,
-          loginType: 2,
-          nickName: phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2'),
-        };
-        await this.userInfoEntity.insert(user);
-      }
-      return this.token({ id: user.id });
+      return await this.phone(phone);
     } else {
       throw new CoolCommException('获得手机号失败，请检查配置');
     }
+  }
+
+  /**
+   * 手机登录
+   * @param phone
+   * @returns
+   */
+  async phone(phone: string) {
+    let user: any = await this.userInfoEntity.findOneBy({
+      phone: Equal(phone),
+    });
+    if (!user) {
+      user = {
+        phone,
+        unionid: phone,
+        loginType: 2,
+        nickName: phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2'),
+      };
+      await this.userInfoEntity.insert(user);
+    }
+    return this.token({ id: user.id });
   }
 
   /**
