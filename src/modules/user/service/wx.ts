@@ -90,7 +90,7 @@ export class UserWxService extends BaseService {
       'https://api.weixin.qq.com/cgi-bin/ticket/getticket',
       {
         params: {
-          access_token: token.access_token,
+          access_token: token,
           type: 'jsapi',
         },
       }
