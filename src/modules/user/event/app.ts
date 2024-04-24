@@ -19,8 +19,8 @@ export class UserAppEvent {
   @App()
   app: IMidwayKoaApplication;
 
-  @Event('onDBInit')
-  async onDBInit() {
+  @Event('onMenuInit')
+  async onMenuInit() {
     this.checkConfig();
   }
 

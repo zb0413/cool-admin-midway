@@ -25,8 +25,8 @@ export class BaseAppEvent {
   @App()
   app: IMidwayKoaApplication;
 
-  @Event('onDBInit')
-  async onDBInit() {
+  @Event('onMenuInit')
+  async onMenuInit() {
     this.checkConfig();
     this.checkKeys();
   }
