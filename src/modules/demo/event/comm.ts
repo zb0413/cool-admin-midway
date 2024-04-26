@@ -21,7 +21,7 @@ export class DemoCommEvent {
    * 插件已就绪
    */
   @Event(EVENT_PLUGIN_READY)
-  async pluginReady(keyName: string) {
-    console.log('插件已就绪', keyName);
+  async pluginReady() {
+    // TODO 插件已就绪
   }
 }
