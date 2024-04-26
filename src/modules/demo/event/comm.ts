@@ -1,6 +1,4 @@
-import { Provide } from '@midwayjs/decorator';
 import { CoolEvent, Event } from '@cool-midway/core';
-import { Scope, ScopeEnum } from '@midwayjs/core';
 
 /**
  * 普通事件
