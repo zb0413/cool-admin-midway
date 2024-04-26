@@ -149,11 +149,11 @@ export class PluginService extends BaseService {
       instance = this.pluginCenterService.plugins.get(key);
     } else {
       instance = new (await this.pluginCenterService.plugins.get(key))();
+      await instance.init(pluginInfo, this.ctx, this.app, {
+        cache: this.midwayCache,
+        pluginService: this,
+      });
     }
-    await instance.init(pluginInfo, this.ctx, this.app, {
-      cache: this.midwayCache,
-      pluginService: this,
-    });
     return instance;
   }
 
