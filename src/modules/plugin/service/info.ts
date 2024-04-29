@@ -167,6 +167,7 @@ export class PluginService extends BaseService {
     }
     const info = await this.pluginInfoEntity
       .createQueryBuilder('a')
+      .select(['a.id', 'a.status'])
       .where({ status: 1, keyName: Equal(key) })
       .getOne();
 
