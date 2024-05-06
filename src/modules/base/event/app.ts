@@ -42,6 +42,8 @@ export class BaseAppEvent {
       setTimeout(() => {
         const filePath = path.join(
           this.app.getBaseDir(),
+          '..',
+          'src',
           'modules',
           'base',
           'config.ts'
@@ -72,6 +74,8 @@ export class BaseAppEvent {
       setTimeout(() => {
         const filePath = path.join(
           this.app.getBaseDir(),
+          '..',
+          'src',
           'config',
           'config.default.ts'
         );

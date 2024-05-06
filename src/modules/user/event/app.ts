@@ -35,6 +35,8 @@ export class UserAppEvent {
       setTimeout(() => {
         const filePath = path.join(
           this.app.getBaseDir(),
+          '..',
+          'src',
           'modules',
           'user',
           'config.ts'
