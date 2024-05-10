@@ -103,7 +103,10 @@ export class PluginService extends BaseService {
    * @param param
    */
   async update(param: any) {
-    const old = await this.pluginInfoEntity.findOneBy({ id: param.id });
+    const old = await this.pluginInfoEntity.findOne({
+      where: { id: param.id },
+      select: ['id', 'status', 'hook'],
+    });
     // 启用插件，禁用同名插件
     if (old.hook && param.status == 1 && old.status != param.status) {
       await this.pluginInfoEntity.update(
@@ -188,8 +191,9 @@ export class PluginService extends BaseService {
         message: `插件信息不完整，请检查${data.errorData}`,
       };
     }
-    const check = await this.pluginInfoEntity.findOneBy({
-      keyName: data.pluginJson.key,
+    const check = await this.pluginInfoEntity.findOne({
+      where: { keyName: Equal(data.pluginJson.key) },
+      select: ['id', 'hook', 'status'],
     });
     if (check && !check.hook) {
       return {
@@ -269,8 +273,9 @@ export class PluginService extends BaseService {
       return checkResult;
     }
     const { pluginJson, readme, logo, content } = await this.data(filePath);
-    const check = await this.pluginInfoEntity.findOneBy({
-      keyName: pluginJson.key,
+    const check = await this.pluginInfoEntity.findOne({
+      where: { keyName: Equal(pluginJson.key) },
+      select: ['id', 'status', 'config'],
     });
     const data = {
       name: pluginJson.name,
