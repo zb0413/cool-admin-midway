@@ -1,0 +1,10 @@
+{
+	"name": "cool-admin-midway",
+	"dockerComposeFile": [
+		"docker-compose.yml"
+	],
+	"service": "cool-admin-midway",
+	"workspaceFolder": "/workspace/",
+	"postCreateCommand": "yarn install",
+	"onCreateCommand": "pwd"
+}
