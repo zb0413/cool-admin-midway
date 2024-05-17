@@ -1,14 +1,14 @@
-import { Inject, Provide } from '@midwayjs/decorator';
+import { Inject, InjectClient, Provide } from '@midwayjs/decorator';
 import { BaseService, CoolCommException } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { Repository } from 'typeorm';
+import { Equal, In, Repository } from 'typeorm';
 import { BaseSysUserEntity } from '../../entity/sys/user';
 import { BaseSysPermsService } from './perms';
 import * as _ from 'lodash';
 import { BaseSysUserRoleEntity } from '../../entity/sys/user_role';
 import * as md5 from 'md5';
 import { BaseSysDepartmentEntity } from '../../entity/sys/department';
-import { CacheManager } from '@midwayjs/cache';
+import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 import { Utils } from '../../../../comm/utils';
 
 /**
@@ -25,8 +25,8 @@ export class BaseSysUserService extends BaseService {
   @InjectEntityModel(BaseSysDepartmentEntity)
   baseSysDepartmentEntity: Repository<BaseSysDepartmentEntity>;
 
-  @Inject()
-  cacheManager: CacheManager;
+  @InjectClient(CachingFactory, 'default')
+  midwayCache: MidwayCache;
 
   @Inject()
   baseSysPermsService: BaseSysPermsService;
@@ -46,13 +46,10 @@ export class BaseSysUserService extends BaseService {
     const sql = `
         SELECT
             a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
-            GROUP_CONCAT(c.name) AS roleName,
-            d.name as departmentName
+            b.name as "departmentName"
         FROM
             base_sys_user a
-            LEFT JOIN base_sys_user_role b ON a.id = b.userId
-            LEFT JOIN base_sys_role c ON b.roleId = c.id
-            LEFT JOIN base_sys_department d on a.departmentId = d.id
+            LEFT JOIN base_sys_department b on a.departmentId = b.id
         WHERE 1 = 1
             ${this.setSql(
               !_.isEmpty(departmentIds),
@@ -69,10 +66,23 @@ export class BaseSysUserService extends BaseService {
               !Utils.hasAdminRole(this.ctx.admin.roleIds),
               'and a.departmentId in (?)',
               [!_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null]]
-            )}
-        GROUP BY a.id
-        `;
-    return this.sqlRenderPage(sql, query);
+            )} `;
+    const result = await this.sqlRenderPage(sql, query);
+    // 匹配角色
+    if (!_.isEmpty(result.list)) {
+      const userIds = result.list.map(e => e.id);
+      const roles = await this.nativeQuery(
+        'SELECT b.name, a.userId FROM base_sys_user_role a LEFT JOIN base_sys_role b ON a.roleId = b.id WHERE a.userId in (?) ',
+        [userIds]
+      );
+      result.list.forEach(e => {
+        e['roleName'] = roles
+          .filter(role => role.userId == e.id)
+          .map(role => role.name)
+          .join(',');
+      });
+    }
+    return result;
   }
 
   /**
@@ -81,20 +91,15 @@ export class BaseSysUserService extends BaseService {
    * @param userIds
    */
   async move(departmentId, userIds) {
-    await this.baseSysUserEntity
-      .createQueryBuilder()
-      .update()
-      .set({ departmentId })
-      .where('id in (:userIds)', { userIds })
-      .execute();
+    await this.baseSysUserEntity.update({ id: In(userIds) }, { departmentId });
   }
 
   /**
    * 获得个人信息
    */
-  async person() {
+  async person(userId) {
     const info = await this.baseSysUserEntity.findOneBy({
-      id: this.ctx.admin?.userId,
+      id: Equal(userId),
     });
     delete info?.password;
 
@@ -207,7 +212,7 @@ export class BaseSysUserService extends BaseService {
         throw new CoolCommException('原密码错误');
       }
       param.passwordV = userInfo.passwordV + 1;
-      await this.cacheManager.set(
+      await this.midwayCache.set(
         `admin:passwordVersion:${param.id}`,
         param.passwordV
       );
@@ -232,7 +237,7 @@ export class BaseSysUserService extends BaseService {
         throw new CoolCommException('用户不存在');
       }
       param.passwordV = userInfo.passwordV + 1;
-      await this.cacheManager.set(
+      await this.midwayCache.set(
         `admin:passwordVersion:${param.id}`,
         param.passwordV
       );
@@ -251,6 +256,6 @@ export class BaseSysUserService extends BaseService {
    * @param userId
    */
   async forbidden(userId) {
-    await this.cacheManager.del(`admin:token:${userId}`);
+    await this.midwayCache.del(`admin:token:${userId}`);
   }
 }

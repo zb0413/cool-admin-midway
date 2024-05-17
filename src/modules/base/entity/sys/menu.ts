@@ -15,12 +15,12 @@ export class BaseSysMenuEntity extends BaseEntity {
   @Column({ comment: '菜单地址', nullable: true })
   router: string;
 
-  @Column({ comment: '权限标识', nullable: true })
+  @Column({ comment: '权限标识', type: 'text', nullable: true })
   perms: string;
 
   @Column({
     comment: '类型 0-目录 1-菜单 2-按钮',
-    default: 0
+    default: 0,
   })
   type: number;
 
@@ -36,9 +36,12 @@ export class BaseSysMenuEntity extends BaseEntity {
   @Column({ comment: '路由缓存', default: true })
   keepAlive: boolean;
 
+  @Column({ comment: '是否显示', default: true })
+  isShow: boolean;
+
   // 父菜单名称
   parentName: string;
 
-  @Column({ comment: '是否显示', default: true })
-  isShow: boolean;
+  // 子菜单
+  childMenus: any;
 }

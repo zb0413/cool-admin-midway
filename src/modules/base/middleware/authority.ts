@@ -1,11 +1,15 @@
 import { App, Config, Inject, Middleware } from '@midwayjs/decorator';
 import * as _ from 'lodash';
-import { RESCODE } from '@cool-midway/core';
+import { CoolUrlTagData, RESCODE, TagTypes } from '@cool-midway/core';
 import * as jwt from 'jsonwebtoken';
 import { NextFunction, Context } from '@midwayjs/koa';
-import { IMiddleware, IMidwayApplication,  Scope, ScopeEnum  } from '@midwayjs/core';
-import { CacheManager } from '@midwayjs/cache';
-import { Utils } from '../../../comm/utils';
+import {
+  IMiddleware,
+  IMidwayApplication,
+  Init,
+  InjectClient,
+} from '@midwayjs/core';
+import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 
 /**
  * 权限校验
@@ -21,11 +25,21 @@ export class BaseAuthorityMiddleware
   @Config('module.base')
   jwtConfig;
 
+  @InjectClient(CachingFactory, 'default')
+  midwayCache: MidwayCache;
+
   @Inject()
-  cacheManager: CacheManager;
+  coolUrlTagData: CoolUrlTagData;
 
   @App()
   app: IMidwayApplication;
+
+  ignoreUrls: string[] = [];
+
+  @Init()
+  async init() {
+    this.ignoreUrls = this.coolUrlTagData.byKey(TagTypes.IGNORE_TOKEN, 'admin');
+  }
 
   resolve() {
     return async (ctx: Context, next: NextFunction) => {
@@ -40,8 +54,6 @@ export class BaseAuthorityMiddleware
         token = token1
       }
       const adminUrl = '/admin/';
-      //忽略token验证的url
-      const ignoreUrls = [];
       // 路由地址为 admin前缀的 需要权限校验
       if (_.startsWith(url, adminUrl)) {
         try {
@@ -55,20 +67,20 @@ export class BaseAuthorityMiddleware
             return;
           }
         } catch (error) {}
-        // 不需要登录 无需权限校验
-        if (
-          new RegExp(`^${adminUrl}?.*/open/`).test(url) ||
-          ignoreUrls.includes(url)
-        ) {
+        // 使用matchUrl方法来检查URL是否应该被忽略
+        const isIgnored = this.ignoreUrls.some(pattern =>
+          this.matchUrl(pattern, url)
+        );
+        if (isIgnored) {
           await next();
           return;
         }
         if (ctx.admin) {
-          const rToken = await this.cacheManager.get(
+          const rToken = await this.midwayCache.get(
             `admin:token:${ctx.admin.userId}`
           );
           // 判断密码版本是否正确
-          const passwordV = await this.cacheManager.get(
+          const passwordV = await this.midwayCache.get(
             `admin:passwordVersion:${ctx.admin.userId}`
           );
           if (passwordV != ctx.admin.passwordVersion) {
@@ -122,7 +134,7 @@ export class BaseAuthorityMiddleware
           if (rToken !== token && this.jwtConfig.jwt.sso) {
             statusCode = 401;
           } else {
-            let perms: string[] = await this.cacheManager.get(
+            let perms: string[] = await this.midwayCache.get(
               `admin:perms:${ctx.admin.userId}`
             );
             if (!_.isEmpty(perms)) {
@@ -150,5 +162,31 @@ export class BaseAuthorityMiddleware
       }
       await next();
     };
+  }
+
+  // 匹配URL的方法
+  matchUrl(pattern, url) {
+    const patternSegments = pattern.split('/').filter(Boolean);
+    const urlSegments = url.split('/').filter(Boolean);
+
+    // 如果段的数量不同，则无法匹配
+    if (patternSegments.length !== urlSegments.length) {
+      return false;
+    }
+
+    // 逐段进行匹配
+    for (let i = 0; i < patternSegments.length; i++) {
+      if (patternSegments[i].startsWith(':')) {
+        // 如果模式段以':'开始，我们认为它是一个参数，可以匹配任何内容
+        continue;
+      }
+      // 如果两个段不相同，则不匹配
+      if (patternSegments[i] !== urlSegments[i]) {
+        return false;
+      }
+    }
+
+    // 所有段都匹配
+    return true;
   }
 }

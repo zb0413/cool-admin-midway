@@ -8,14 +8,16 @@
     "emitDecoratorMetadata": true,
     "inlineSourceMap":true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "stripInternal": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "pretty": true,
     "declaration": true,
     "noImplicitAny": false,
     "typeRoots": [ "./typings", "./node_modules/@types"],
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "src"
   },
   "exclude": [
     "dist",

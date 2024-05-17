@@ -205,7 +205,7 @@ export class TaskInfoService extends BaseService {
       `
       SELECT
           a.*,
-          b.NAME AS taskName
+          b.name AS taskName
       FROM
       task_log a
       JOIN task_info b ON a.taskId = b.id
@@ -281,10 +281,9 @@ export class TaskInfoService extends BaseService {
    * @param jobId
    */
   async updateNextRunTime(jobId) {
-    await this.nativeQuery(
-      'update task_info a set a.nextRunTime = ? where a.id = ?',
-      [await this.getNextRunTime(jobId), jobId]
-    );
+    await this.taskInfoEntity.update(jobId, {
+      nextRunTime: await this.getNextRunTime(jobId),
+    });
   }
 
   /**
@@ -330,7 +329,9 @@ export class TaskInfoService extends BaseService {
   async invokeService(serviceStr) {
     if (serviceStr) {
       const arr = serviceStr.split('.');
-      const service = await this.app.getApplicationContext().getAsync(arr[0]);
+      const service = await this.app
+        .getApplicationContext()
+        .getAsync(_.lowerFirst(arr[0]));
       for (const child of arr) {
         if (child.includes('(')) {
           const lastArr = child.split('(');

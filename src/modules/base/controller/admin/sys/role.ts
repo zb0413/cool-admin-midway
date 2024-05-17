@@ -22,7 +22,7 @@ import { Utils } from '../../../../../comm/utils';
     };
   },
   pageQueryOp: {
-    keyWordLikeFields: ['name', 'label'],
+    keyWordLikeFields: ['a.name', 'a.label'],
     where: async (ctx: Context) => {
       const { userId, roleIds } = ctx.admin;
       return [
@@ -30,7 +30,7 @@ import { Utils } from '../../../../../comm/utils';
         ['label != :label', { label: 'admin' }],
         // 如果不是超管，只能看到自己新建的或者自己有的角色
         [
-          '(userId=:userId or id in (:roleIds))',
+          '(userId=:userId or id in (:...roleIds))',
           { userId, roleIds },
           !Utils.hasAdminRole(roleIds)
         ],

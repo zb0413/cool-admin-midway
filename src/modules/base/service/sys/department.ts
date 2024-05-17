@@ -1,12 +1,13 @@
 import { Inject, Provide } from '@midwayjs/decorator';
 import { BaseService } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BaseSysDepartmentEntity } from '../../entity/sys/department';
 import * as _ from 'lodash';
 import { BaseSysRoleDepartmentEntity } from '../../entity/sys/role_department';
 import { BaseSysPermsService } from './perms';
 import { Utils } from '../../../../comm/utils';
+import { BaseSysUserEntity } from '../../entity/sys/user';
 
 /**
  * 描述
@@ -15,6 +16,9 @@ import { Utils } from '../../../../comm/utils';
 export class BaseSysDepartmentService extends BaseService {
   @InjectEntityModel(BaseSysDepartmentEntity)
   baseSysDepartmentEntity: Repository<BaseSysDepartmentEntity>;
+
+  @InjectEntityModel(BaseSysUserEntity)
+  baseSysUserEntity: Repository<BaseSysUserEntity>;
 
   @InjectEntityModel(BaseSysRoleDepartmentEntity)
   baseSysRoleDepartmentEntity: Repository<BaseSysRoleDepartmentEntity>;
@@ -35,12 +39,12 @@ export class BaseSysDepartmentService extends BaseService {
     );
 
     // 过滤部门权限
-    const find = this.baseSysDepartmentEntity.createQueryBuilder();
+    const find = this.baseSysDepartmentEntity.createQueryBuilder('a');
     if (!Utils.hasAdminRole(this.ctx.admin.roleIds))
-      find.andWhere('id in (:ids)', {
+      find.andWhere('a.id in (:...ids)', {
         ids: !_.isEmpty(permsDepartmentArr) ? permsDepartmentArr : [null],
       });
-    find.addOrderBy('orderNum', 'ASC');
+    find.addOrderBy('a.orderNum', 'ASC');
     const departments: BaseSysDepartmentEntity[] = await find.getMany();
 
     if (!_.isEmpty(departments)) {
@@ -73,8 +77,8 @@ export class BaseSysDepartmentService extends BaseService {
         });
       }
       const result = await this.baseSysRoleDepartmentEntity
-        .createQueryBuilder()
-        .where('roleId in (:roleIds)', { roleIds })
+        .createQueryBuilder('a')
+        .where('a.roleId in (:...roleIds)', { roleIds })
         .getMany();
       if (!_.isEmpty(result)) {
         return _.uniq(
@@ -104,19 +108,16 @@ export class BaseSysDepartmentService extends BaseService {
     const { deleteUser } = this.ctx.request.body;
     await super.delete(ids);
     if (deleteUser) {
-      await this.nativeQuery(
-        'delete from base_sys_user where departmentId in (?)',
-        [ids]
-      );
+      await this.baseSysUserEntity.delete({ departmentId: In(ids) });
     } else {
       const topDepartment = await this.baseSysDepartmentEntity
-        .createQueryBuilder()
-        .where('parentId is null')
+        .createQueryBuilder('a')
+        .where('a.parentId is null')
         .getOne();
       if (topDepartment) {
-        await this.nativeQuery(
-          'update base_sys_user a set a.departmentId = ? where a.departmentId in (?)',
-          [topDepartment.id, ids]
+        await this.baseSysUserEntity.update(
+          { departmentId: In(ids) },
+          { departmentId: topDepartment.id }
         );
       }
     }

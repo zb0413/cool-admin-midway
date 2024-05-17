@@ -1,5 +1,6 @@
-import { App, Controller, Get, Inject } from '@midwayjs/decorator';
-import { Context, Application } from '@midwayjs/koa';
+import { Controller, Get, Inject } from '@midwayjs/decorator';
+import { Context } from '@midwayjs/koa';
+import * as packageJson from '../package.json';
 
 /**
  * 欢迎界面
@@ -9,13 +10,10 @@ export class WelcomeController {
   @Inject()
   ctx: Context;
 
-  @App()
-  app: Application;
-
-  @Get('/')
+  @Get('/', { summary: '欢迎界面' })
   public async welcome() {
     await this.ctx.render('welcome', {
-      text: 'HELLO COOL-ADMIN v7.0 一个项目用COOL就够了！！！',
+      text: `HELLO COOL-ADMIN v${packageJson.version} 全栈开发就用COOL！！！`,
     });
   }
 }

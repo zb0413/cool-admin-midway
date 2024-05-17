@@ -1,16 +1,15 @@
 import { DemoCacheService } from '../../service/cache';
-import { Inject, Post, Provide, Get } from '@midwayjs/decorator';
+import { Inject, Post, Provide, Get, InjectClient } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import { CacheManager } from '@midwayjs/cache';
+import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
 
 /**
  * 缓存
  */
-@Provide()
 @CoolController()
-export class AppDemoCacheController extends BaseController {
-  @Inject()
-  cacheManager: CacheManager;
+export class OpenDemoCacheController extends BaseController {
+  @InjectClient(CachingFactory, 'default')
+  midwayCache: MidwayCache;
 
   @Inject()
   demoCacheService: DemoCacheService;
@@ -21,12 +20,10 @@ export class AppDemoCacheController extends BaseController {
    */
   @Post('/set')
   async set() {
-    await this.cacheManager.set('a', 1);
+    await this.midwayCache.set('a', 1);
     // 缓存10秒
-    await this.cacheManager.set('a', 1, {
-      ttl: 30,
-    });
-    return this.ok(await this.cacheManager.get('a'));
+    await this.midwayCache.set('a', 1, 10 * 1000);
+    return this.ok(await this.midwayCache.get('a'));
   }
 
   /**
