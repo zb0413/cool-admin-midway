@@ -81,7 +81,7 @@ export class BaseSysMenuService extends BaseService {
     let perms = [];
     if (!_.isEmpty(roleIds)) {
       const find = await this.baseSysMenuEntity.createQueryBuilder('a');
-      if (!Utils.hasAdminRole(roleIds) {
+      if (!Utils.hasAdminRole(roleIds)) {
         find.innerJoinAndSelect(
           BaseSysRoleMenuEntity,
           'b',

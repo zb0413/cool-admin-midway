@@ -8,8 +8,11 @@ import {
   IMidwayApplication,
   Init,
   InjectClient,
+  ScopeEnum, 
+  Scope
 } from '@midwayjs/core';
 import { CachingFactory, MidwayCache } from '@midwayjs/cache-manager';
+import { Utils } from '../../../comm/utils';
 
 /**
  * 权限校验

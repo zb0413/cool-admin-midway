@@ -38,44 +38,6 @@ export default {
       },
     },
   },
-
-  httpProxy: {
-    // match: /\/cool-js\//,
-    // host: 'https://admin.cool-js.com',
-
-    strategy: {
-      'cool-js': {
-        match: /\/cool-js\/(.*)$/,
-        target: 'https://admin.cool-js.com/$1',
-      },
-      // httpBin: {
-      //   // https://httpbin.org/
-      //   match: /\/httpbin\/(.*)$/,
-      //   target: 'https://httpbin.org/$1',
-      // },
-      httpBin: {
-        // https://httpbin.org/
-        match: /\/httpbin\/(.*)$/,
-        target: 'https://httpbin.org/$1',
-      },
-    },
-    
-  },
-
-  // cacheManager: {
-  //   clients: {
-  //     default: {
-  //       store: redisStore,
-  //       options: {
-  //         port: 6379,
-  //         host: '127.0.0.1',
-  //         password: '',
-  //         ttl: 0,
-  //         db: 0,
-  //       },
-  //     },
-  //   },
-  // },
   cool: {
     // 已经插件化，本地文件上传查看 plugin/config.ts，其他云存储查看对应插件的使用
     file: {},
@@ -85,6 +47,8 @@ export default {
       upsert: 'save',
       // 软删除
       softDelete: true,
+
+      pageSize: 10,
     },
   } as CoolConfig,
 } as MidwayConfig;
